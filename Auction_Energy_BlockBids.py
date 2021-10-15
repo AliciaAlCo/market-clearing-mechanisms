@@ -22,7 +22,7 @@ import ast
 
 # Initial Setpoint
 #Setpoint = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\Setpoint_nodes.xlsx',sheet_name='Nodes15',index_col=0) # Baseline injections at each nodes (negative for retrieval)
-Setpoint = pd.read_excel(open('Setpoint_nodes.xlsx', 'rb'),sheet_name='Hoja1',index_col=0) # Baseline injections at each nodes (negative for retrieval)
+Setpoint = pd.read_excel(open('Setpoint_nodes.xlsx', 'rb'),sheet_name='Nodes33lines+0.1',index_col=0) # Baseline injections at each nodes (negative for retrieval)
 
 # Initial Social Welfare and Flexibility Procurement Cost
 Social_Welfare = 0
@@ -186,7 +186,7 @@ def dc_opf():
         # Constraint 2: Distribution lines limits
         for L in m.L:
             m.flow_eq.add(m.f[L,T] - branch.loc[L,'B']*(m.theta[branch.loc[L,'From'],T] - m.theta[branch.loc[L,'To'],T]) == 0)
-            m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Pmax'],m.f[L,T],branch.loc[L,'Pmax']))
+            m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Lim'],m.f[L,T],branch.loc[L,'Lim']))
         
         # Constraint 3: Power balance per node # Setpoint + Pou - Pod - Pru + Prd - losses = 0
         for N in m.N:
@@ -384,8 +384,8 @@ if printsol == 1:
         # Line flow calculations:
 
         for L in lines: 
-            line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Pmax'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Pmax']},ignore_index=True)                    
-            line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Pmax'],2)
+            line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Lim'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Lim']},ignore_index=True)                    
+            line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Lim'],2)
             
         
             
@@ -540,7 +540,7 @@ worst_bids = pd.concat(worst_bids)
 #             # Constraint 2: Distribution lines limits
 #             for L in m.L:
 #                 m.flow_eq.add(m.f[L,T] - branch.loc[L,'B']*(m.theta[branch.loc[L,'From'],T] - m.theta[branch.loc[L,'To'],T]) == 0)
-#                 m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Pmax'],m.f[L,T],branch.loc[L,'Pmax']))
+#                 m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Lim'],m.f[L,T],branch.loc[L,'Lim']))
             
 #             # Constraint 3: Power balance per node # Setpoint + Pou - Pod - Pru + Prd - losses = 0
 #             for N in m.N:

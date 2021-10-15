@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 18 13:31:09 2020
-@author: emapr
+@author: emapr and aalarcon
 """
 
 import pandas as pd
@@ -15,8 +15,6 @@ import ast
 
 #%% Case data
 
-#Setpoint = pd.read_csv('Setpoint.csv',index_col='Time_target',converters={1:ast.literal_eval}) # Baseline injections at each node (negative for retrieval)
-
 Setpoint_ini = pd.read_excel(open('Setpoint_nodes.xlsx', 'rb'),sheet_name='Nodes33lines+0.1',index_col=0)
 
 Setpoint = pd.DataFrame(columns = ['Time_target','Setpoint_P'])
@@ -26,9 +24,7 @@ setpoint = []
 for t in Setpoint_ini.index:
     setpoint = []
     for n in Setpoint_ini.columns:
-        #4print(t,n,Setpoint_ini.at[t,n])
         setpoint.append(Setpoint_ini.at[t,n])
-        #print ('aaaaaaa',setpoint)
     Setpoint.at[t,'Setpoint_P'] = setpoint
 
 Setpoint1 = Setpoint
@@ -45,9 +41,6 @@ nodes = list(bus.index)
 # Upload bids
                                                          #'T1_best','T1_worst','T1_random'
 all_bids = pd.read_excel(open('Bids_energy_33.xlsx','rb'),sheet_name='T1_random',index_col=0)
-
-#print (all_bids)
-#print (all_bids_csv)
 
 # Create empty dataframes to contain the bids that were not matched (order book)
 orderbook_offer = pd.DataFrame(columns = ['ID','Bus','Direction','Quantity','Price','Time_target','Time_stamp','Block'])
@@ -125,8 +118,7 @@ def continuous_clearing(new_bid, orderbook_request, orderbook_offer, orderbook_t
                 if bid_nature == 'Offer':
                     if ID not in orderbook_request.index:
                         continue
-                    #print (ID)
-                    #print (orderbook_request.at[ID,'Price'])
+                    
                     request_price = orderbook_request.at[ID,'Price']
                     request_index = ID
                 elif bid_nature == 'Request':
@@ -192,12 +184,10 @@ def continuous_clearing(new_bid, orderbook_request, orderbook_offer, orderbook_t
                             for Offer in orderbook_temporary.index:      
                                 if orderbook_temporary.at[Offer,'Offer'] == offer_index and orderbook_temporary.at[Offer,'Request'] == request_index:
                                     print ('There is a match with this bid already')
-                                    # print (matches.shape[0])
                                     matches = matches.drop([matches.shape[0]-1], axis=0) # Remove the match
                                     a = 1
                                     break
-                                
-                                    #return Setpoint, status, orderbook_request, orderbook_offer, orderbook_temporary,  matches, flag, Social_Welfare, Flex_procurement
+
                             if a ==1: # Continue with the next bid
                                 continue
                             
@@ -325,8 +315,6 @@ def continuous_clearing(new_bid, orderbook_request, orderbook_offer, orderbook_t
                                                     # Remove the temporary match
                                                 orderbook_temporary = orderbook_temporary.drop([Offer], axis=0)
                                     
-                                    #return Setpoint, status, orderbook_request, orderbook_offer, orderbook_temporary,  matches, flag, Social_Welfare, Flex_procurement
-                                
                                 else:
                                     orderbook_temporary = orderbook_temporary.append({'Offer':offer_index,'Offer Bus':nodes[offer_bus],'Offer Block':offer_block,'Offer Price':offer_price,'Offer Time_stamp':offer_time_stamp,'Request':request_index,'Request Bus':nodes[request_bus],'Request Time_stamp':request_time_stamp,'Direction':direction,'Quantity':Quantity,'Matching Price':matching_price, 'Time_target':time_target},ignore_index=True)
                                     orderbook_temporary.sort_values(by=['Time_target','Matching Price'], ascending=[True,True], inplace=True) # Sort by price and by time submission and gather by time target
@@ -334,7 +322,6 @@ def continuous_clearing(new_bid, orderbook_request, orderbook_offer, orderbook_t
                                         if matches.at[match,'Offer Block'] == offer_block:
                                             matches = matches.drop([match])
 
-                                    
                         # If the bid it is not a BB
                         else:
                             print ('No BB involved')
@@ -357,10 +344,7 @@ def continuous_clearing(new_bid, orderbook_request, orderbook_offer, orderbook_t
                                                 orderbook_offer.at[offer_broken,'Quantity'] += orderbook_temporary.at[i,'Quantity']
                                                 
                                             else: # If not, add it
-                                                #orderbook_offer.append({'ID':offer_broken,'Bus':orderbook_temporary.at[[orderbook_temporary['Offer']==offer_broken],'Bus'],'Direction':orderbook_temporary.at[[orderbook_temporary['Offer']==offer_broken],'Direction'],'Quantity':orderbook_temporary.at[[orderbook_temporary['Offer']==offer_broken],'Quantity'],'Price':all_bids.at[offer_broken,'Price'],'Time_target':all_bids.at[offer_broken,'Time_target'],'Time_stamp':all_bids.at[offer_broken,'Time_stamp'],'Block':all_bids.at[offer_broken,'Block']})                                                                                 
                                                 orderbook_offer.loc[offer_broken]=[orderbook_temporary.at[i,'Offer Bus'],orderbook_temporary.at[i,'Direction'],orderbook_temporary.at[i,'Quantity'],orderbook_temporary.at[i,'Offer Price'],orderbook_temporary.at[i,'Time_target'],orderbook_temporary.at[i,'Offer Time_stamp'], orderbook_temporary.at[i,'Offer Block']]
-                                               # 'ID','Bus','Direction','Quantity','Price','Time_target','Time_stamp','Block'])
-
                                                 orderbook_offer.sort_values(by=['Time_target','Price','Time_stamp'], ascending=[True,True,True], inplace=True) # Sort by price and by time submission and gather by time target     
                                                                                
                                             orderbook_temporary = orderbook_temporary.drop([i], axis=0) # Remove the temporary match  
@@ -552,12 +536,6 @@ for matches in market_result.index:
     else:
         offers_accepted_down = offers_accepted_down.append({'Time_target':all_bids.at[offer,'Time_target'], 'Direction':all_bids.at[offer,'Direction'], 'Quantity':market_result.at[matches,'Quantity'], 'Price':all_bids.at[offer,'Price'], 'ID':offer, 'Bus':all_bids.at[offer,'Bus'], 'Time_stamp':all_bids.at[offer,'Time_stamp'], 'Block':all_bids.at[offer,'Block']},ignore_index=True)                                        
         requests_accepted_down = requests_accepted_down.append({'Time_target':all_bids.at[request,'Time_target'], 'Direction':all_bids.at[request,'Direction'], 'Quantity':market_result.at[matches,'Quantity'], 'Price':all_bids.at[request,'Price'], 'ID':request, 'Bus':all_bids.at[request,'Bus'], 'Time_stamp':all_bids.at[request,'Time_stamp'], 'Block':all_bids.at[request,'Block']},ignore_index=True)
-
-#print (offers_accepted)
-#print (requests_accepted)
-
-#requests_accepted.sort_values(by=['Time_target','Direction','Time_stamp'], ascending=[True,True,True], inplace=True) # Sort by price and by time submission and gather by time target     
-#offers_accepted.sort_values(by=['Time_target','Direction','Time_stamp'], ascending=[True,True,True], inplace=True) # Sort by price and by time submission and gather by time target     
 
 
     
