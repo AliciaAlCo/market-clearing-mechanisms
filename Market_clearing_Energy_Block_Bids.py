@@ -469,7 +469,6 @@ for b in all_bids.index:
     All_Matches.append([flag,matches])
     
     if not matches.empty:
-        print('HOLAAAAAAAAAAAA')
         for i in matches.index:
             market_result = market_result.append({'Offer':matches.at[i,'Offer'],'Offer Bus':matches.at[i,'Offer Bus'],'Offer Block':matches.at[i,'Offer Block'],'Request':matches.at[i,'Request'],'Request Bus':matches.at[i,'Request Bus'],'Direction':matches.at[i,'Direction'],'Quantity':matches.at[i,'Quantity'],'Matching Price':matches.at[i,'Matching Price'],'Time_target':matches.at[i,'Time_target'],'Social Welfare':matches.at[i,'Social Welfare']},ignore_index=True)
             market_result.sort_values(by=['Time_target'],ascending=[True], inplace=True)

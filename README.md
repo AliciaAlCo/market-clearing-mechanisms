@@ -8,11 +8,11 @@ Thesis *Market Clearing Mechanisms for Local Flexibility Markets in Distribution
  * **Setpoint_nodes.xlsx**: Initial value of the bus setpoints, together with some studies and calculations of the Setpoint.
 
 ## Run the Auction-based clearing algorithm
-The script **Market_clearing_energy.py** should be run to simulate the matching of the bis in **Bids_energy.csv** by the continuous market.
+The script **Auction_Energy_BlockBids.py** should be run to simulate the matching of the bids in **Bids_energy_33.xlsx** by the auction-based market.
 
 ## Run the Continuous clearing algorithm
-
-
+The script **Market_clearing_Energy_Block_Bids.py** should be run to simulate the matching of the bids in **Bids_energy_33.xlsx** by the continuous market.
 
 ## Grid contraints
-Grid constraints are checked by the function implemented in **PTDF_check.py**, which is called by **Market_clearing_energy.py**
+* **Auction_Energy_BlockBids.py** performs a DC optimal power flow analysis using the data in **network33bus.xlsx** and **Setpoint_nodes.xlsx**.
+* **Market_clearing_Energy_Block_Bids.py** calls **PTDF_check.py**, which uses the PTDF factors given in **network33bus.xlsx**.

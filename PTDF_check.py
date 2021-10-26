@@ -7,7 +7,6 @@ Created on Thu Aug 20 18:13:54 2020
 import pandas as pd
 
 # Defines a function that returns the minimum quantity of power that can be exchanged between an offer bus and a request bus, without leading to congestions
-
 def PTDF_check(SetPoint,Quantity,offer_bus,request_bus,direction):
     
     epsilon=0.00001 # Tolerance
@@ -53,6 +52,5 @@ def PTDF_check(SetPoint,Quantity,offer_bus,request_bus,direction):
             if Pl_max/PTDF_diff < Quantity: # If the quantity is bigger than the max for this line, update it to be equal to the max for this line
                 Quantity = Pl_max/PTDF_diff
     
-            
                 
     return Quantity

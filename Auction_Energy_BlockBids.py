@@ -6,11 +6,6 @@ Created on May 2021
 @author: aalarcon
 """
 
-#import shutil
-#import sys
-#import os.path
-
-#from pyomo.environ import *
 from pyomo.opt import SolverStatus, TerminationCondition
 import pyomo.environ as pyo
 import pyomo.gdp as gdp
@@ -21,7 +16,6 @@ import pandas as pd
 import ast
 
 # Initial Setpoint
-#Setpoint = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\Setpoint_nodes.xlsx',sheet_name='Nodes15',index_col=0) # Baseline injections at each nodes (negative for retrieval)
 Setpoint = pd.read_excel(open('Setpoint_nodes.xlsx', 'rb'),sheet_name='Nodes33lines+0.1',index_col=0) # Baseline injections at each nodes (negative for retrieval)
 
 # Initial Social Welfare and Flexibility Procurement Cost
@@ -29,7 +23,6 @@ Social_Welfare = 0
 Flex_procurement = 0
 
 # Index for nodes
-#bus = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\network15bus.xlsx',sheet_name='Bus',index_col=0)
 bus = pd.read_excel(open('network33bus.xlsx','rb'),sheet_name='Bus',index_col=0)
 nodes = list(bus.index)
 
@@ -53,7 +46,6 @@ all_offers_up = pd.DataFrame(columns = ['ID','Bus','Quantity','Price','Time_targ
 all_offers_up.set_index('ID',inplace=True)
 all_offers_down = pd.DataFrame(columns = ['ID','Bus','Quantity','Price','Time_target','Time_stamp','Block'])
 all_offers_down.set_index('ID',inplace=True)
-
 
 offers_BB = pd.DataFrame(columns = ['ID','Bus','Quantity','Price','Time_target','Time_stamp','Block'])
 offers_BB.set_index('ID',inplace=True)
@@ -84,7 +76,6 @@ for ID in all_bids.index:
                 offers_up.sort_values(by=['Time_target'], ascending=[True], inplace=True)
                 all_offers_up.loc[ID] = [all_bids.at[ID,'Bus'],all_bids.at[ID,'Quantity'],all_bids.at[ID,'Price'],all_bids.at[ID,'Time_target'],all_bids.at[ID,'Time_stamp'],all_bids.at[ID,'Block']]
                 all_offers_up.sort_values(by=['Time_target','Price'], ascending=[True,True], inplace=True)
-
             
             elif all_bids.at[ID,'Direction'] == 'Down':
                 offers_down.loc[ID] = [all_bids.at[ID,'Bus'],all_bids.at[ID,'Quantity'],all_bids.at[ID,'Price'],all_bids.at[ID,'Time_target'],all_bids.at[ID,'Time_stamp'],all_bids.at[ID,'Block']]
@@ -92,7 +83,7 @@ for ID in all_bids.index:
                 all_offers_down.loc[ID] = [all_bids.at[ID,'Bus'],all_bids.at[ID,'Quantity'],all_bids.at[ID,'Price'],all_bids.at[ID,'Time_target'],all_bids.at[ID,'Time_stamp'],all_bids.at[ID,'Block']]
                 all_offers_down.sort_values(by=['Time_target','Price'], ascending=[True,True], inplace=True)
 
-        else:
+        else: # Classify block offers
             offers_BB.loc[ID] = [all_bids.at[ID,'Bus'],all_bids.at[ID,'Quantity'],all_bids.at[ID,'Price'],all_bids.at[ID,'Time_target'],all_bids.at[ID,'Time_stamp'],all_bids.at[ID,'Block']]
             offers_BB.sort_values(by=['Time_target'], ascending=[True], inplace=True)
             if all_bids.at[ID,'Direction'] == 'Up':
@@ -237,7 +228,7 @@ results = opt.solve(m)
 m.dual.display()
 #print ("Dual for nod_bal=", m.dual[m.nod_bal])
 
-# trial for MILP
+# Solve MILP fixing binary variables
 
 # if pyo.value(m.AR[2]) == 0:
 #     m.AR[2].fix(1)
@@ -382,12 +373,10 @@ if printsol == 1:
         social_welfare_total += Social_Welfare
         
         # Line flow calculations:
-
         for L in lines: 
             line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Lim'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Lim']},ignore_index=True)                    
             line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Lim'],2)
             
-        
             
     print ('Total Social Welfare',round(social_welfare_total,4))
     print ('Total energy volume',round(energy_volume_up_total+energy_volume_down_total,2)) 
@@ -459,16 +448,7 @@ worst_bids = pd.concat(worst_bids)
 
 
 
-
-
-
-
-
-
-
-
-
-#%% 2- Optimization problem LP
+#%% 2- Optimization problem LP - solving optimization problem with binary variables fixed for the second time
 
 # #if AR_results.empty or 1 not in AR_results.values:
 # if AR_results.empty:
@@ -729,18 +709,15 @@ worst_bids = pd.concat(worst_bids)
 #     print ('Requests up duals')
 #     print (requests_up_dual)
 
-#%% For graphs
-
-
    
-#%%
-if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
-     print ("this is feasible and optimal")
-elif results.solver.termination_condition == TerminationCondition.infeasible:
-     print ("do something about it? or exit?")
-else:
-     # something else is wrong
-     print (str(results.solver))
+#%% Check feasibility of the optimization problem
+# if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
+#      print ("this is feasible and optimal")
+# elif results.solver.termination_condition == TerminationCondition.infeasible:
+#      print ("do something about it? or exit?")
+# else:
+#      # something else is wrong
+#      print (str(results.solver))
       
 
 
