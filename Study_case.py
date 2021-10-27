@@ -25,14 +25,14 @@ import random
 import datetime
 
 # Initial Setpoint
-Setpoint = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\Setpoint_nodes.xlsx',sheet_name='AC',index_col=0) # Baseline injections at each nodes (negative for retrieval)
+Setpoint = pd.read_excel(open('Setpoint_initial.xlsx', 'rb'),sheet_name='Initial',index_col=0) # Baseline injections at each nodes (negative for retrieval)
 
 # Index for nodes
-bus = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\network33bus.xlsx',sheet_name='Bus',index_col=0)
+bus = pd.read_excel(open('network33bus.xlsx','rb'),sheet_name='Bus',index_col=0)
 nodes = list(bus.index)
 
 # Index for branches
-branch= pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\network33bus.xlsx',sheet_name='Branch',index_col=0)
+branch= pd.read_excel(open('network33bus.xlsx','rb'),sheet_name='Branch',index_col=0)
 lines = list(branch.index)
 
 branch['B'] = 1/branch['X']
@@ -75,7 +75,7 @@ def flex_req():
         # Constraint 2: Distribution lines limits
         for L in m.L:
             m.flow_eq.add(m.f[L,T] - branch.loc[L,'B']*(m.theta[branch.loc[L,'From'],T] - m.theta[branch.loc[L,'To'],T]) == 0)
-            m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Pmax'],m.f[L,T],branch.loc[L,'Pmax']))
+            m.flow_bounds.add(pyo.inequality(-branch.loc[L,'Lim'],m.f[L,T],branch.loc[L,'Lim']))
         
         # Constraint 3: Power balance
         for N in m.N:
@@ -98,8 +98,8 @@ line_flow_per = pd.DataFrame(columns = ['Time Period','l1','l2','l3','l4','l5','
 line_flow_per.set_index('Time Period',inplace=True)
 for T in Setpoint.index:
     for L in lines: 
-        line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Pmax'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Pmax']},ignore_index=True)                    
-        line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Pmax'],2)
+        line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Lim'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Lim']},ignore_index=True)                    
+        line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Lim'],2)
 
 #%% Requests Creation
 

@@ -1,4 +1,4 @@
-# market clearing mechanisms
+# market-clearing-mechanisms
 Code for performing auction-based and continuous clearing in local flexibility markets (LFM) including block bids and network constraints. The repository is associated with the Master's 
 Thesis *Market Clearing Mechanisms for Local Flexibility Markets in Distribution Grids* by A. Alarcón Cobacho.
 
