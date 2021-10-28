@@ -6,12 +6,6 @@ Created on May 2021
 @author: aalarcon
 """
 
-#import shutil
-#import sys
-#import os.path
-
-
-#from pyomo.environ import *
 from pyomo.opt import SolverStatus, TerminationCondition
 import pyomo.environ as pyo
 import pyomo.gdp as gdp
@@ -39,13 +33,10 @@ branch['B'] = 1/branch['X']
 n_ref = 'n1'
 
 
-#%%
+#%% Optimization problem to identify the requests to make the initial setpoint feasible
 def flex_req():
     
     m = pyo.ConcreteModel()
-    
-    # for access to dual solution for constraints
-    m.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
     
     # Sets creation
     m.T = pyo.Set(initialize = Setpoint.index, doc='Time_periods')
@@ -64,7 +55,7 @@ def flex_req():
     m.flow_bounds = pyo.ConstraintList() # Constraint 2: Distribution lines limits
     m.nod_bal = pyo.ConstraintList(doc = 'Nodes') # Constraint 3: Power balance per node
     
-    
+    # Objective function: Minimize 
     m.obj_req = pyo.Objective(expr= sum(m.slack_up[T,N] + m.slack_down[T,N] for N in m.N for T in m.T), sense=pyo.minimize)
 
     for T in m.T:
@@ -127,7 +118,6 @@ if len(nodes) == 33: # Print results
                 req_down +=1
                 req_down_quantity += m.slack_down[t,n].value
                 
-
     print ('req_up',req_up,req_up_quantity,'req_down',req_down,req_down_quantity)
     
 if len(nodes) == 15: # Print results
