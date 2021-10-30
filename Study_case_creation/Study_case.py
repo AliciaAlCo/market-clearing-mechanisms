@@ -33,7 +33,7 @@ branch['B'] = 1/branch['X']
 n_ref = 'n1'
 
 
-#%% Optimization problem to identify the requests to make the initial setpoint feasible
+#%% Optimization problem to identify the flexible requests to make the initial setpoint feasible
 def flex_req():
     
     m = pyo.ConcreteModel()
@@ -55,7 +55,7 @@ def flex_req():
     m.flow_bounds = pyo.ConstraintList() # Constraint 2: Distribution lines limits
     m.nod_bal = pyo.ConstraintList(doc = 'Nodes') # Constraint 3: Power balance per node
     
-    # Objective function: Minimize 
+    # Objective function: Minimize the modifications of the setpoint to make it feasible
     m.obj_req = pyo.Objective(expr= sum(m.slack_up[T,N] + m.slack_down[T,N] for N in m.N for T in m.T), sense=pyo.minimize)
 
     for T in m.T:
@@ -92,11 +92,11 @@ for T in Setpoint.index:
         line_flow = line_flow.append({'Time_target':T,'Line':L,'Power_flow': abs(m.f[L,T].value),'Line_limit':branch.at[L,'Lim'],'Line_capacity':100*abs(m.f[L,T].value)/branch.at[L,'Lim']},ignore_index=True)                    
         line_flow_per.at[T,L] = round(abs(m.f[L,T].value)/branch.at[L,'Lim'],2)
 
-#%% Requests Creation
+#%% Flexible Requests Creation to obtain a feasible setpoint
 
 requests = pd.DataFrame(columns = ['ID','Bid','Bus','Direction','Quantity','Price','Time_target','Time_stamp','Block'])
 
-if len(nodes) == 33: # Print results
+if len(nodes) == 33: # Print results 33 nodes
     print ('33nodes')
     req_up = 0
     req_down = 0
@@ -120,7 +120,7 @@ if len(nodes) == 33: # Print results
                 
     print ('req_up',req_up,req_up_quantity,'req_down',req_down,req_down_quantity)
     
-if len(nodes) == 15: # Print results
+if len(nodes) == 15: # Print results 15 nodes
     print ('15nodes')
     req_up = 0
     req_down = 0
@@ -166,7 +166,6 @@ for t in slack_up_all.index: # Create Flex_req
 
 #%%Offers creation
 
-#Setpoint = pd.read_excel(r'C:\Users\Usuario\Desktop\Thesis\auction_clearing\Setpoint_nodes.xlsx',sheet_name='Nodes33',index_col=0) # Baseline injections at each nodes (negative for retrieval)
 nodes = Setpoint.columns
 time_periods = Setpoint.index
 
@@ -229,14 +228,14 @@ for bid in all_bids_ini.index:
         all_bids = all_bids.append({'ID':ran_ID,'Bid':'Offer','Bus':ran_n,'Direction':ran_dir2,'Quantity':ran_Q,'Price':ran_price,'Time_target':ran_tt2,'Time_stamp':0,'Block':ran_bb},ignore_index=True)
 
 
-#%%
-if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
-     print ("this is feasible and optimal")
-elif results.solver.termination_condition == TerminationCondition.infeasible:
-     print ("do something about it? or exit?")
-else:
-     # something else is wrong
-     print (str(results.solver))
+#%% Check feasibility of the optimization problem
+# if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
+#      print ("this is feasible and optimal")
+# elif results.solver.termination_condition == TerminationCondition.infeasible:
+#      print ("do something about it? or exit?")
+# else:
+#      # something else is wrong
+#      print (str(results.solver))
 
 
 
